@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
+	"strings"
 )
 
 func main() {
@@ -29,6 +31,21 @@ func main() {
 				break
 			}
 			log.Fatal(err)
+		}
+		parts := strings.Split(string(buf), "\r\n")
+		parts = parts[:len(parts)-1]
+		fmt.Println(parts)
+		if len(parts) == 7 {
+			if strings.ToLower(parts[2]) == "set" {
+				res := ReadSet(parts)
+				fmt.Println(res)
+			}
+		}
+		if len(parts) == 5 {
+			if strings.ToLower(parts[2]) == "get" {
+				res := ReadGet(parts[4])
+				fmt.Println(res)
+			}
 		}
 		conn.Write([]byte("+OK\r\n"))
 	}
