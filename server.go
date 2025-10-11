@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
+	"go-redis/RESP"
 	"log"
 	"net"
 )
@@ -12,26 +12,15 @@ func handleConnection(conn net.Conn) {
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
-
+			fmt.Println("Error closing connection")
 		}
 	}(conn)
 	reader := bufio.NewReader(conn)
 
 	for {
-		buf := make([]byte, 1024)
-		n, err := reader.Read(buf)
-		if err != nil {
-			if err == io.EOF {
-				fmt.Println("Client disconnected")
-			} else {
-				fmt.Printf("Read error: %v\n", err)
-			}
-			return
-		}
-
-		fmt.Printf("Received: %q\n", buf[:n])
-		response := "+OK\r\n"
-		_, err = conn.Write([]byte(response))
+		cmd := RESP.DeserializeCommand(reader)
+		fmt.Printf("Received: %q\n", cmd)
+		_, err := conn.Write([]byte(cmd + "\r\n"))
 		if err != nil {
 			fmt.Printf("Write error: %v\n", err)
 			return
@@ -45,7 +34,6 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("Server started and listening on port 6379")
-
 	for {
 		conn, err := listener.Accept()
 		if err != nil {

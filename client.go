@@ -6,6 +6,7 @@ import (
 	"go-redis/RESP"
 	"net"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -33,6 +34,10 @@ func main() {
 		if err != nil {
 			fmt.Printf("read error : %s\n", err)
 			break
+		}
+		idx := strings.Index(response, "\r\n")
+		if idx != -1 {
+			response = response[:idx]
 		}
 		fmt.Printf("Response: %q\n", response)
 	}
